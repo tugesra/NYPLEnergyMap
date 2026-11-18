@@ -198,6 +198,24 @@
 				lastZoom = zoom;
 			});
 
+			// Subway lines (MTA Subway Service Lines, data.ny.gov), drawn in official MTA colors
+			map.createPane('subway');
+			map.getPane('subway').style.zIndex = 420;
+			map.getPane('subway').style.pointerEvents = 'none';
+			var subwayLayer = L.layerGroup();
+			try {
+				const subwayResponse = await fetch('./Data/subway_lines.geojson');
+				const subwayData = await subwayResponse.json();
+				L.geoJSON(subwayData, {
+					pane: 'subway',
+					interactive: false,
+					style: (feature) => ({ color: feature.properties.color, weight: 2, opacity: 0.85 })
+				}).addTo(subwayLayer);
+			} catch (error) {
+				console.error('Error loading subway lines:', error);
+			}
+			subwayLayer.addTo(map);
+
 			const tractJsonData = await loadTractData();
 
 			if (tractJsonData) {
@@ -785,6 +803,7 @@
 							selectAllCheckbox: false,
 							collapsed: false,
 							children: [
+								{ label: 'Subway Lines', layer: subwayLayer },
 								{
 									label: 'HVI',
 									selectAllCheckbox: false,
