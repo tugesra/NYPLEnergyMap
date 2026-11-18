@@ -57,20 +57,21 @@
 			// Setting Maximum Bounds to Focus on only NYC
 			map.setMaxBounds(map.getBounds());
 
-			// Base maps: free CARTO tiles (no access token needed)
+			// Base maps: CARTO tiles (free API key, up to 5M requests/month)
+			var cartoKey = 'cb1_5bsm_1_69d69230e290e168598f1701';
 			var cartoAttribution =
 				'© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>';
 
 			// Light Theme Tile Layer
 			var lightTheme = L.tileLayer(
-				'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-				{ attribution: cartoAttribution, subdomains: 'abcd', maxNativeZoom: 20, maxZoom: 25 }
+				'https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png?key=' + cartoKey,
+				{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25 }
 			);
 
 			// Dark Theme Tile Layer
 			var darkTheme = L.tileLayer(
-				'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-				{ attribution: cartoAttribution, subdomains: 'abcd', maxNativeZoom: 20, maxZoom: 25 }
+				'https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=' + cartoKey,
+				{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25 }
 			).addTo(map);
 
 			// Event listener to Display Location Data in Developer Element
