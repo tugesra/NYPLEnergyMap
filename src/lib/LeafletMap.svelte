@@ -1,21 +1,10 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
-	import { createClient } from '@supabase/supabase-js';
-	import { PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-	import { PUBLIC_MAPBOX_ACCESS_TOKEN } from '$env/static/public';
 	import { loadTractData } from './Components/dataLoader.js';
 
-	// Initialize Supabase client
-	const supabaseUrl = 'https://gajoxvjlmnnkkrovzwcb.supabase.co';
-	const supabaseKey = PUBLIC_SUPABASE_ANON_KEY;
-	const supabase = createClient(supabaseUrl, supabaseKey, {
-		auth: {
-			persistSession: false
-		}
-	});
-
-	// console.log('Supabase: ', supabase);
+	// Branch data is stored in this repository (static/Data/EnergyDatabase.json),
+	// a snapshot of the original Supabase table, so the map has no external database.
 
 	// Calling Empty Variables //
 	let mapElement;
@@ -68,29 +57,20 @@
 			// Setting Maximum Bounds to Focus on only NYC
 			map.setMaxBounds(map.getBounds());
 
-			// Assigning Mapbox API Token
-			var accessToken = PUBLIC_MAPBOX_ACCESS_TOKEN;
+			// Base maps: free CARTO tiles (no access token needed)
+			var cartoAttribution =
+				'© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>';
 
-			// Creating MapBox Light Theme Tile Layer
+			// Light Theme Tile Layer
 			var lightTheme = L.tileLayer(
-				'https://api.mapbox.com/styles/v1/stahlstradamus/clrb4kx8p005v01qo3vaef7k7/tiles/{z}/{x}/{y}?access_token=' +
-					accessToken,
-				{
-					attribution:
-						'© <a href="https://www.mapbox.com/contribute/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-					maxZoom: 25
-				}
+				'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+				{ attribution: cartoAttribution, subdomains: 'abcd', maxNativeZoom: 20, maxZoom: 25 }
 			);
 
-			// Creating MapBox Dark Theme Tile Layer
+			// Dark Theme Tile Layer
 			var darkTheme = L.tileLayer(
-				'https://api.mapbox.com/styles/v1/stahlstradamus/clrb52eso006901pi7jv416qa/tiles/{z}/{x}/{y}?access_token=' +
-					accessToken,
-				{
-					attribution:
-						'© <a href="https://www.mapbox.com/contribute/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-					maxZoom: 25
-				}
+				'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+				{ attribution: cartoAttribution, subdomains: 'abcd', maxNativeZoom: 20, maxZoom: 25 }
 			).addTo(map);
 
 			// Event listener to Display Location Data in Developer Element
@@ -163,9 +143,10 @@
 			// Step 1 (STOP)//
 			//////////////////
 
-			// Asyncronous Function to Call Supabase Library Data
+			// Asyncronous Function to Load Library Data from this repository
 			async function fetchData() {
-				const { data } = await supabase.from('EnergyDatabase').select('*');
+				const response = await fetch('./Data/EnergyDatabase.json');
+				const data = await response.json();
 				// console.log(data);
 				return {
 					EnergyDatabase: data ?? []
@@ -902,7 +883,7 @@
 				);
 
 				// Creating 'Close' Button
-				var CollapseBtn = `<div><img class="layerControlToggle" style="float:right;" src="https://raw.githubusercontent.com/stahlnypl/NYPLEHSMAP/main/static/Data/images/lct_button.png"></div>`;
+				var CollapseBtn = `<div><img class="layerControlToggle" style="float:right;" src="./Data/images/lct_button.png"></div>`;
 
 				// Inserting HTML for 'Close' Button into Layer Control Tree Container
 				LayerControlContainer.insertAdjacentHTML('afterbegin', CollapseBtn);
