@@ -84,11 +84,21 @@
 				{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25 }
 			);
 
-			// Night Theme Tile Layer (Voyager recolored to a dark blue-gray with CSS)
-			var nightTheme = L.tileLayer(
-				'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=' + cartoKey,
-				{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25, className: 'night-tiles' }
-			).addTo(map);
+			// Night Theme: Voyager recolored to a slate blue-gray with CSS, with place
+			// names on a separate, softer label layer to keep the map uncluttered
+			map.createPane('nightLabels');
+			map.getPane('nightLabels').style.zIndex = 450;
+			map.getPane('nightLabels').style.pointerEvents = 'none';
+			var nightTheme = L.layerGroup([
+				L.tileLayer(
+					'https://basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}.png?key=' + cartoKey,
+					{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25, className: 'night-tiles' }
+				),
+				L.tileLayer(
+					'https://basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png?key=' + cartoKey,
+					{ maxNativeZoom: 20, maxZoom: 25, pane: 'nightLabels', className: 'night-tiles night-labels' }
+				)
+			]).addTo(map);
 
 			// Event listener to Display Location Data in Developer Element
 			map.on('move', () => {
@@ -1073,8 +1083,11 @@
 	:global(.bright-labels) {
 		filter: brightness(220%) contrast(110%);
 	}
+	:global(.night-labels) {
+		opacity: 0.55;
+	}
 	:global(.night-tiles) {
-		filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(85%) saturate(70%);
+		filter: grayscale(100%) invert(100%) sepia(100%) hue-rotate(175deg) saturate(130%) brightness(125%) contrast(75%);
 	}
 	@import 'leaflet-search/dist/leaflet-search.src.css';
 
