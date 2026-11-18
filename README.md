@@ -28,7 +28,7 @@ Neighborhood context, by census tract:
 | Layer | Source |
 |---|---|
 | Heat Vulnerability Index (HVI), tiers 1–5 | NYC Department of Health and Mental Hygiene |
-| Environmental Justice areas | NYC Environmental Justice mapping |
+| Environmental Justice areas | [EJNYC Mapping Tool](https://climate.cityofnewyork.us/ejnyc-report/introduction), NYC Mayor’s Office of Climate & Environmental Justice |
 | Flood risk zones | FY2020 energy audits funded by DCAS Division of Energy Management |
 
 Branches are grouped by borough and by NYPL network, so staff can switch a whole network on or off.
@@ -47,12 +47,12 @@ From the map data (as of 2024):
 
 This map was built by Jacob Stahl, EHS & Esra Tug, Sustainability at the NYPL Facilities department in 2024. Jacob built the map’s code; Esra built the data and analysis.
 
-**My role (Esra Tug, [Sustainability Analyst Intern], NYPL Facilities, May–December 2024):**
+**My role (Esra Tug, Sustainability Analyst Intern, NYPL Facilities, May–December 2024):**
 
 - Built the census-tract-to-branch dataset (`CensusTractbyBranch.geojson`) that links each branch to its HVI tier, Environmental Justice status and flood risk.
 - Added the LED and BMS breakdown by funding source (NYPL capital vs. DCAS), so staff can see which agency funds each upgrade.
 - Conducted 26 compliance site visits for Local Law 88, Local Law 97 and Local Law 152; findings informed the upgrade data on the map.
-- Used the map as the basis for the NYPL case study in my master's capstone, *[Decarbonizing NYC Buildings, Case Study: New York Public Library]*, [Pace University], [2024].
+- Used the map as the basis for the NYPL case study in my master's capstone, *Decarbonizing NYC Buildings, Case Study: New York Public Library*, Pace University, 2024.
 
 
 ## Tech stack
@@ -84,10 +84,10 @@ The site is published automatically to GitHub Pages by the workflow in `.github/
 
 Branch energy data belongs to the New York Public Library. Census tract, HVI and Environmental Justice layers come from public NYC open data.
 
-This repository is a fork of [stahlnypl/NYPLEnergyMap](https://github.com/stahlnypl/NYPLEnergyMap), the original NYPL Facilities team project. All original commit history and authorship are preserved.
+This repository is a fork of [stahlnypl/NYPLEnergyMap](https://github.com/stahlnypl/NYPLEnergyMap), the original project by Jacob Stahl and Esra Tug at NYPL Facilities. All original commit history and authorship are preserved.
 
 No license has been applied. The original code was written by Jacob Stahl and Esra Tug.
 
 ## How to cite
 
-> Tug, E., et al. (2024). *NYPL Energy & Sustainability Map* [Software]. New York Public Library. https://github.com/tugesra/NYPLEnergyMap
+> Stahl, J., & Tug, E. (2024). *NYPL Energy & Sustainability Map* [Software]. New York Public Library. https://github.com/tugesra/NYPLEnergyMap
