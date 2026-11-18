@@ -57,60 +57,110 @@
 			// Setting Maximum Bounds to Focus on only NYC
 			map.setMaxBounds(map.getBounds());
 
-			// Base maps: CARTO tiles (free API key, up to 5M requests/month)
+			// Base maps: CARTO (free API key, up to 5M requests/month)
 			var cartoKey = 'cb1_5bsm_1_69d69230e290e168598f1701';
 			var cartoAttribution =
 				'© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>';
 
-			// Dark Theme: map without labels, plus a separate label layer that is
-			// brightened with CSS and drawn above the data layers so it stays readable
-			map.createPane('darkLabels');
-			map.getPane('darkLabels').style.zIndex = 450;
-			map.getPane('darkLabels').style.pointerEvents = 'none';
-			var darkTheme = L.layerGroup([
-				L.tileLayer(
-					'https://basemaps.cartocdn.com/rastertiles/dark_nolabels/{z}/{x}/{y}.png?key=' + cartoKey,
-					{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25 }
-				),
-				L.tileLayer(
-					'https://basemaps.cartocdn.com/rastertiles/dark_only_labels/{z}/{x}/{y}.png?key=' + cartoKey,
-					{ maxNativeZoom: 20, maxZoom: 25, pane: 'darkLabels', className: 'bright-labels' }
-				)
-			]);
-
-			// Color Theme Tile Layer (CARTO Voyager: blue water, green parks)
+			// Color Theme: CARTO Voyager raster tiles
 			var colorTheme = L.tileLayer(
 				'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=' + cartoKey,
 				{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25 }
 			);
 
-			// Night Theme: Voyager recolored to a slate blue-gray with CSS, with place
-			// names on a separate, softer label layer to keep the map uncluttered
-			map.createPane('nightLabels');
-			map.getPane('nightLabels').style.zIndex = 450;
-			map.getPane('nightLabels').style.pointerEvents = 'none';
-			var nightTheme = L.layerGroup([
-				L.tileLayer(
-					'https://basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}.png?key=' + cartoKey,
-					{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25, className: 'night-tiles' }
-				),
-				L.tileLayer(
-					'https://basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png?key=' + cartoKey,
-					{ maxNativeZoom: 20, maxZoom: 25, pane: 'nightLabels', className: 'night-tiles night-labels' }
-				)
-			]).addTo(map);
+			// Night Theme: CARTO vector tiles drawn with MapLibre GL, recolored to a
+			// slate blue-gray palette (lighter water, green parks, blue roads, soft labels)
+			const loadScript = (src) =>
+				new Promise((resolve, reject) => {
+					const el = document.createElement('script');
+					el.src = src;
+					el.onload = resolve;
+					el.onerror = reject;
+					document.head.appendChild(el);
+				});
+			const loadCss = (href) => {
+				const el = document.createElement('link');
+				el.rel = 'stylesheet';
+				el.href = href;
+				document.head.appendChild(el);
+			};
+			const nightColors = {
+				land: '#353d49',
+				water: '#5d6f80',
+				park: '#3e5a4b',
+				building: '#2e353f',
+				minor: '#434d5a',
+				secondary: '#55667d',
+				primary: '#5f7aa0',
+				motorway: '#7393c4',
+				casing: '#2a3039',
+				rail: '#596473',
+				boundary: '#56606d',
+				text: '#b8c3d1',
+				halo: '#262c35'
+			};
+			function recolorStyle(style) {
+				const c = nightColors;
+				for (const layer of style.layers) {
+					const id = layer.id;
+					const paint = (layer.paint = layer.paint || {});
+					if (layer.type === 'background') paint['background-color'] = c.land;
+					else if (id.startsWith('water') && layer.type === 'fill') paint['fill-color'] = c.water;
+					else if (id === 'waterway') paint['line-color'] = c.water;
+					else if (id.startsWith('park') || id === 'landcover') {
+						paint['fill-color'] = c.park;
+						paint['fill-opacity'] = 0.8;
+					} else if (id === 'landuse') {
+						paint['fill-color'] = c.park;
+						paint['fill-opacity'] = 0.6;
+					} else if (id === 'landuse_residential') paint['fill-opacity'] = 0;
+					else if (id.startsWith('building')) paint['fill-color'] = c.building;
+					else if (layer.type === 'line') {
+						if (id.includes('_case')) paint['line-color'] = c.casing;
+						else if (/(mot|trunk)/.test(id)) paint['line-color'] = c.motorway;
+						else if (/pri/.test(id)) paint['line-color'] = c.primary;
+						else if (/sec/.test(id)) paint['line-color'] = c.secondary;
+						else if (/(minor|service|path|aeroway)/.test(id)) paint['line-color'] = c.minor;
+						else if (/rail/.test(id)) paint['line-color'] = c.rail;
+						else if (/boundary/.test(id)) paint['line-color'] = c.boundary;
+					}
+					if (layer.type === 'symbol') {
+						paint['text-color'] = c.text;
+						paint['text-halo-color'] = c.halo;
+						paint['text-opacity'] = 0.7;
+						paint['icon-opacity'] = 0.6;
+					}
+				}
+				return style;
+			}
 
-			// Event listener to Display Location Data in Developer Element
-			map.on('move', () => {
-				updateData();
-			});
+			var nightTheme;
+			try {
+				loadCss('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css');
+				window.L = window.L || L;
+				await loadScript('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js');
+				await loadScript(
+					'https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/dist/leaflet-maplibre-gl.js'
+				);
+				const nightStyle = await fetch(
+					'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json?key=' + cartoKey
+				).then((r) => r.json());
+				nightTheme = window.L.maplibreGL({
+					style: recolorStyle(nightStyle),
+					attribution: cartoAttribution
+				});
+			} catch (error) {
+				// If the vector map cannot load, fall back to the Color Theme
+				console.error('Error loading Night Theme:', error);
+				nightTheme = colorTheme;
+			}
+			nightTheme.addTo(map);
 
 			// Assigning Base Maps for Layer Control Tree
 			var baseTree = {
 				label: 'Base Maps',
 				children: [
 					{ label: 'Night Theme', layer: nightTheme },
-					{ label: 'Dark Theme', layer: darkTheme },
 					{ label: 'Color Theme', layer: colorTheme }
 				]
 			};
@@ -219,7 +269,7 @@
 				L.geoJSON(subwayData, {
 					pane: 'subway',
 					interactive: false,
-					style: (feature) => ({ color: feature.properties.color, weight: 2, opacity: 0.85 })
+					style: (feature) => ({ color: feature.properties.color, weight: 1.3, opacity: 0.9 })
 				}).addTo(subwayLayer);
 			} catch (error) {
 				console.error('Error loading subway lines:', error);
@@ -1080,15 +1130,6 @@
 
 <style>
 	@import 'leaflet/dist/leaflet.css';
-	:global(.bright-labels) {
-		filter: brightness(220%) contrast(110%);
-	}
-	:global(.night-labels) {
-		opacity: 0.55;
-	}
-	:global(.night-tiles) {
-		filter: grayscale(100%) invert(100%) sepia(100%) hue-rotate(175deg) saturate(130%) brightness(125%) contrast(75%);
-	}
 	@import 'leaflet-search/dist/leaflet-search.src.css';
 
 	section div {
