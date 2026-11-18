@@ -72,6 +72,18 @@
 			var darkTheme = L.tileLayer(
 				'https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=' + cartoKey,
 				{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25 }
+			);
+
+			// Color Theme Tile Layer (CARTO Voyager: blue water, green parks)
+			var colorTheme = L.tileLayer(
+				'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=' + cartoKey,
+				{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25 }
+			);
+
+			// Night Theme Tile Layer (Voyager recolored to a dark blue-gray with CSS)
+			var nightTheme = L.tileLayer(
+				'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=' + cartoKey,
+				{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25, className: 'night-tiles' }
 			).addTo(map);
 
 			// Event listener to Display Location Data in Developer Element
@@ -83,8 +95,10 @@
 			var baseTree = {
 				label: 'Base Maps',
 				children: [
-					{ label: 'Light Theme', layer: lightTheme },
-					{ label: 'Dark Theme', layer: darkTheme }
+					{ label: 'Night Theme', layer: nightTheme },
+					{ label: 'Dark Theme', layer: darkTheme },
+					{ label: 'Color Theme', layer: colorTheme },
+					{ label: 'Light Theme', layer: lightTheme }
 				]
 			};
 
@@ -1034,6 +1048,9 @@
 
 <style>
 	@import 'leaflet/dist/leaflet.css';
+	:global(.night-tiles) {
+		filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(85%) saturate(70%);
+	}
 	@import 'leaflet-search/dist/leaflet-search.src.css';
 
 	section div {
