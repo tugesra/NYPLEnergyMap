@@ -62,17 +62,21 @@
 			var cartoAttribution =
 				'© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>';
 
-			// Light Theme Tile Layer
-			var lightTheme = L.tileLayer(
-				'https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png?key=' + cartoKey,
-				{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25 }
-			);
-
-			// Dark Theme Tile Layer
-			var darkTheme = L.tileLayer(
-				'https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=' + cartoKey,
-				{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25 }
-			);
+			// Dark Theme: map without labels, plus a separate label layer that is
+			// brightened with CSS and drawn above the data layers so it stays readable
+			map.createPane('darkLabels');
+			map.getPane('darkLabels').style.zIndex = 450;
+			map.getPane('darkLabels').style.pointerEvents = 'none';
+			var darkTheme = L.layerGroup([
+				L.tileLayer(
+					'https://basemaps.cartocdn.com/rastertiles/dark_nolabels/{z}/{x}/{y}.png?key=' + cartoKey,
+					{ attribution: cartoAttribution, maxNativeZoom: 20, maxZoom: 25 }
+				),
+				L.tileLayer(
+					'https://basemaps.cartocdn.com/rastertiles/dark_only_labels/{z}/{x}/{y}.png?key=' + cartoKey,
+					{ maxNativeZoom: 20, maxZoom: 25, pane: 'darkLabels', className: 'bright-labels' }
+				)
+			]);
 
 			// Color Theme Tile Layer (CARTO Voyager: blue water, green parks)
 			var colorTheme = L.tileLayer(
@@ -97,8 +101,7 @@
 				children: [
 					{ label: 'Night Theme', layer: nightTheme },
 					{ label: 'Dark Theme', layer: darkTheme },
-					{ label: 'Color Theme', layer: colorTheme },
-					{ label: 'Light Theme', layer: lightTheme }
+					{ label: 'Color Theme', layer: colorTheme }
 				]
 			};
 
@@ -1048,6 +1051,9 @@
 
 <style>
 	@import 'leaflet/dist/leaflet.css';
+	:global(.bright-labels) {
+		filter: brightness(220%) contrast(110%);
+	}
 	:global(.night-tiles) {
 		filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(85%) saturate(70%);
 	}
